@@ -16,6 +16,14 @@ export default function UpdatesPage() {
   const [updates, setUpdates] = useState<Update[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    version: '',
+    channel: 'stable',
+    releaseNotes: '',
+    fileUrl: '',
+    isMandatory: false
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -43,18 +51,11 @@ export default function UpdatesPage() {
     }
   };
 
-  const handleAddUpdate = async () => {
-    const version = prompt('Enter version number (e.g., 1.0.1):');
-    if (!version) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const channel = prompt('Enter channel (stable/beta/alpha):', 'stable');
-    if (!channel) return;
-    
-    const releaseNotes = prompt('Enter release notes:');
-    const fileUrl = prompt('Enter file URL (from Supabase Storage):');
-    
-    if (!fileUrl) {
-      alert('File URL is required');
+    if (!formData.version || !formData.fileUrl) {
+      alert('Version and file URL are required');
       return;
     }
     
@@ -65,15 +66,23 @@ export default function UpdatesPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          version,
-          channel,
-          releaseNotes,
-          fileUrl
+          version: formData.version,
+          channel: formData.channel,
+          releaseNotes: formData.releaseNotes,
+          fileUrl: formData.fileUrl,
+          isMandatory: formData.isMandatory
         })
       });
       
       if (response.ok) {
-        alert('Update added successfully!');
+        setShowForm(false);
+        setFormData({
+          version: '',
+          channel: 'stable',
+          releaseNotes: '',
+          fileUrl: '',
+          isMandatory: false
+        });
         fetchUpdates();
       } else {
         alert('Failed to add update');
@@ -95,11 +104,10 @@ export default function UpdatesPage() {
             </h1>
             <div className="space-x-4">
               <button
-                onClick={handleAddUpdate}
-                disabled={uploading}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                onClick={() => setShowForm(!showForm)}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
               >
-                {uploading ? 'Adding...' : 'Add Update'}
+                {showForm ? 'Cancel' : 'Add Update'}
               </button>
               <button
                 onClick={() => router.push('/admin')}
@@ -110,14 +118,114 @@ export default function UpdatesPage() {
             </div>
           </div>
 
+          {showForm && (
+            <div className="mb-6 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Add New Update
+              </h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Version Number *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.version}
+                      onChange={(e) => setFormData({...formData, version: e.target.value})}
+                      placeholder="1.0.0"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Channel
+                    </label>
+                    <select
+                      value={formData.channel}
+                      onChange={(e) => setFormData({...formData, channel: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="stable">Stable</option>
+                      <option value="beta">Beta</option>
+                      <option value="alpha">Alpha</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    GitHub Release URL *
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.fileUrl}
+                    onChange={(e) => setFormData({...formData, fileUrl: e.target.value})}
+                    placeholder="https://github.com/redbay-Dev/nexumserver/releases/download/v1.0.0/nexum-setup.exe"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Enter the direct download URL from your GitHub release
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Release Notes
+                  </label>
+                  <textarea
+                    value={formData.releaseNotes}
+                    onChange={(e) => setFormData({...formData, releaseNotes: e.target.value})}
+                    rows={3}
+                    placeholder="What's new in this version..."
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="mandatory"
+                    checked={formData.isMandatory}
+                    onChange={(e) => setFormData({...formData, isMandatory: e.target.checked})}
+                    className="mr-2"
+                  />
+                  <label htmlFor="mandatory" className="text-sm text-gray-700 dark:text-gray-300">
+                    Make this update mandatory
+                  </label>
+                </div>
+                
+                <div className="flex space-x-4">
+                  <button
+                    type="submit"
+                    disabled={uploading}
+                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {uploading ? 'Adding...' : 'Add Update'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded">
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              How to Upload Updates:
+              How to Add Updates:
             </h3>
             <ol className="list-decimal list-inside text-sm text-blue-700 dark:text-blue-300 space-y-1">
-              <li>Upload your .exe file to Supabase Storage</li>
-              <li>Get the public URL of the uploaded file</li>
-              <li>Click &quot;Add Update&quot; and enter the version details</li>
+              <li>Upload your .exe file to GitHub releases</li>
+              <li>Copy the direct download URL</li>
+              <li>Click &quot;Add Update&quot; and fill in the form</li>
               <li>The Nexus app will automatically detect new updates</li>
             </ol>
           </div>
