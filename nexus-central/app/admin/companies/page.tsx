@@ -32,7 +32,12 @@ export default function CompaniesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/admin/companies');
+      const adminSecret = sessionStorage.getItem('adminSecret');
+      const response = await fetch('/api/admin/companies', {
+        headers: {
+          'x-admin-secret': adminSecret || ''
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setCompanies(data.companies || []);

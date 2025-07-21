@@ -39,7 +39,12 @@ export default function UpdatesPage() {
 
   const fetchUpdates = async () => {
     try {
-      const response = await fetch('/api/admin/updates');
+      const adminSecret = sessionStorage.getItem('adminSecret');
+      const response = await fetch('/api/admin/updates', {
+        headers: {
+          'x-admin-secret': adminSecret || ''
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setUpdates(data.updates || []);
@@ -62,9 +67,13 @@ export default function UpdatesPage() {
     setUploading(true);
     
     try {
+      const adminSecret = sessionStorage.getItem('adminSecret');
       const response = await fetch('/api/admin/updates', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-secret': adminSecret || ''
+        },
         body: JSON.stringify({
           version: formData.version,
           channel: formData.channel,

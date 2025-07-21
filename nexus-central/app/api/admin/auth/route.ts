@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (password === adminSecret) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, adminSecret });
     } else {
       return NextResponse.json(
         { error: 'Invalid password' },

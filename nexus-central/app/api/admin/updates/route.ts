@@ -3,8 +3,14 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET(request: NextRequest) {
   try {
-    // Skip auth check for now - in production use proper auth
-    // TODO: Implement proper authentication
+    // Check for admin authentication
+    const authHeader = request.headers.get('x-admin-secret');
+    if (authHeader !== process.env.NEXUS_ADMIN_SECRET) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ updates: [] });
@@ -30,8 +36,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Skip auth check for now - in production use proper auth
-    // TODO: Implement proper authentication
+    // Check for admin authentication
+    const authHeader = request.headers.get('x-admin-secret');
+    if (authHeader !== process.env.NEXUS_ADMIN_SECRET) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     
     if (!isSupabaseConfigured()) {
       return NextResponse.json(

@@ -36,7 +36,9 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         sessionStorage.setItem('adminAuth', 'true');
+        sessionStorage.setItem('adminSecret', data.adminSecret);
         setIsAuthenticated(true);
         setError('');
         fetchStats();
@@ -50,7 +52,12 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
+      const adminSecret = sessionStorage.getItem('adminSecret');
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'x-admin-secret': adminSecret || ''
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setStats(data);
