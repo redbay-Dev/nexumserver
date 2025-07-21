@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/mnt/c/Development/NexumServer/logs/.b848f4428c2e6ce6855c2c074947e60aeb1b3e76-audit.json",
+    "files": [
+        {
+            "date": 1753075973730,
+            "name": "/mnt/c/Development/NexumServer/logs/mcp-puppeteer-2025-07-21.log",
+            "hash": "1867305e6bb8498fc4bf1bacb07b1fb7fe994a2d232f83e4f493039a62b17b4b"
+        }
+    ],
+    "hashType": "sha256"
+}
